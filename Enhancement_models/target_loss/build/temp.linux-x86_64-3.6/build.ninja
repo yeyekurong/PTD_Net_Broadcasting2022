@@ -1,0 +1,31 @@
+ninja_required_version = 1.3
+cxx = c++
+nvcc = /usr/local/cuda/bin/nvcc
+
+cflags = -pthread -B /data2/GQ/anaconda3/envs/py1.1/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_CUDA -I/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/torch/csrc/api/include -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/TH -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/THC -I/usr/local/cuda/include -I/data2/GQ/anaconda3/envs/py1.1/include/python3.6m -c
+post_cflags = -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++14
+cuda_cflags = -DWITH_CUDA -I/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/torch/csrc/api/include -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/TH -I/data2/GQ/anaconda3/envs/py1.1/lib/python3.6/site-packages/torch/include/THC -I/usr/local/cuda/include -I/data2/GQ/anaconda3/envs/py1.1/include/python3.6m -c
+cuda_post_cflags = -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options '-fPIC' -DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=0 -gencode=arch=compute_75,code=sm_75 -std=c++14
+ldflags = 
+
+rule compile
+  command = $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags
+  depfile = $out.d
+  deps = gcc
+
+rule cuda_compile
+  command = $nvcc $cuda_cflags -c $in -o $out $cuda_post_cflags
+
+
+
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/vision.o: compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/vision.cpp
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/ROIAlign_cpu.o: compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/ROIAlign_cpu.cpp
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/nms_cpu.o: compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/nms_cpu.cpp
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/nms.o: cuda_compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/nms.cu
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIPool_cuda.o: cuda_compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIPool_cuda.cu
+build /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIAlign_cuda.o: cuda_compile /data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIAlign_cuda.cu
+
+
+
+
+

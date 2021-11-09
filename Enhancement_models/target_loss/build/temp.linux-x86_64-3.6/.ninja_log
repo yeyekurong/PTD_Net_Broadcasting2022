@@ -1,0 +1,7 @@
+# ninja log v5
+0	21310	1591670838906518321	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/ROIAlign_cpu.o	1fb3701504a9b04b
+1	22051	1591670839646492033	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cpu/nms_cpu.o	132e55b0381708ea
+1	24058	1591670841654420829	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIPool_cuda.o	e3386ddee8c6c0a3
+1	24097	1591670841694419412	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/nms.o	fdfab51c8ed9488b
+2	24319	1591670841914411620	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/cuda/ROIAlign_cuda.o	59905d62f7ce9648
+0	24861	1591670842454392518	/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/build/temp.linux-x86_64-3.6/data2/GQ/faster-rcnn.pytorch-pytorch-1.0/lib/model/csrc/vision.o	cc758edf01086a44
