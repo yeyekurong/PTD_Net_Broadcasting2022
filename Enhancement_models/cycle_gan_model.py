@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import copy
 import torch.nn as nn
 from collections import OrderedDict
-from Defogging_models.ECLoss import DCLoss, ColorLoss, L1_TVLoss, MSCNLoss
+from Defogging_models.ECLoss import DCLoss, ColorLoss, L1_TVLoss
 
 class CycleGANModel(BaseModel):
     """
@@ -231,15 +231,14 @@ class CycleGANModel(BaseModel):
         self.loss_trans_B = self.criterionTrans2(self.fake_A, self.real_B) * m_time + self.criterionTrans1(self.fake_A.max(1)[0], self.real_B.max(1)[0]) * (m_time/4) #/4
 
         self.loss_color = 40 * ColorLoss(self.fake_A)
-        self.loss_mscn = self.mscnloss(self.fake_A)*0.1
         
-        #self.loss_grad = self.GradLoss(self.fake_A) * 2 #paper
+
         self.loss_grad = L1_TVLoss(self.fake_A) * float(15) 
         self.loss_grad = self.loss_grad.mean()
         self.loss_TV = L1_TVLoss(self.fake_A-self.real_B) * float(5) #-10 paper
         
         #self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + self.loss_trans_B + self.loss_TV - self.loss_grad  + self.loss_mscn + self.loss_color
-        self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + self.loss_trans_B + self.loss_TV - self.loss_grad  + self.loss_mscn + self.loss_color
+        self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + self.loss_trans_B + self.loss_TV - self.loss_grad + self.loss_color
         
         if torch.isnan(self.loss_G):
             self.loss_G = torch.Tensor([0])

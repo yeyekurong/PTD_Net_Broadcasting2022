@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import copy
 import torch.nn as nn
 from collections import OrderedDict
-from Defogging_models.ECLoss import L1_TVLoss, ColorLoss, MSCNLoss
+from Defogging_models.ECLoss import L1_TVLoss, ColorLoss
 
 
 class CGANModel(BaseModel):
@@ -275,16 +275,6 @@ class CGANModel(BaseModel):
             fake_A = (self.fake_A+0.5)
             self.loss_target, self.gt_feature_low, self.gt_mask_low, self.target_feature_low, self.target_mask_low = self.criterionTarget(real_A, fake_A, self.A_boxes, self.A_num_box, self.B_boxes, self.B_num_box) # self.loss_gt
         
-        #print(self.B_boxes)
-        #from torchvision import utils
-        #print(self.target_mask_low)
-        #utils.save_image(self.target_mask_low, 'aaaaaaaaaaaaaaa.png')
-        
-        #self.loss_gt = 0.3 * self.loss_gt.mean()
-        #print(self.A_boxes[0][:][4])
-        #self.idt_B = self.netG_B(self.real_A)
-        #self.loss_idt_B = self.criterionIdt(self.idt_B, self.real_A) * lambda_A * lambda_idt
-        
         if not isinstance(self.loss_target,int):
             if self.B_num_box == 0:
                 self.loss_target =  4 * self.loss_target.mean()
@@ -294,14 +284,13 @@ class CGANModel(BaseModel):
         self.loss_G_B_low = 0.1 * self.netD_B_low(self.gt_feature_low, self.target_feature_low, self.gt_mask_low, self.target_mask_low, True)
         self.loss_grad = L1_TVLoss(self.fake_A) * float(15) 
         self.loss_color = 40 * ColorLoss(self.fake_A)
-        self.loss_mscn = self.mscnloss(self.fake_A)*0.1
         
         if refine:
             fake_A_sample = F.interpolate(self.fake_A, scale_factor=0.5, mode="bilinear")
             self.loss_G_B = 0.1  *(self.criterionGAN(self.netD_B(self.fake_A), True) + self.criterionGAN(self.netD_B(fake_A_sample), True))
-            self.loss_G = self.loss_target + self.loss_G_B_low + self.loss_trans_B + self.loss_TV - self.loss_grad + self.loss_G_B #+ self.loss_idt_B
+            self.loss_G = self.loss_target + self.loss_G_B_low + self.loss_trans_B + self.loss_TV - self.loss_grad + self.loss_G_B 
         else:
-            self.loss_G = self.loss_target + self.loss_G_B_low + self.loss_trans_B + self.loss_TV - self.loss_grad + self.loss_color + self.loss_mscn#+ self.loss_DC #+ self.loss_idt_B #+  self.loss_G_B_high self.loss_gt
+            self.loss_G = self.loss_target + self.loss_G_B_low + self.loss_trans_B + self.loss_TV - self.loss_grad + self.loss_color 
         
         if torch.isnan(self.loss_G) or self.loss_trans_B > 40:
             self.loss_G = torch.Tensor([0])
