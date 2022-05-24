@@ -102,7 +102,7 @@ def get_params(opt, size):
     x = random.randint(0, np.maximum(0, new_w - opt.crop_size))
     #y = random.randint(0, np.maximum(0, new_h-new_h/4.5 - opt.crop_size))
     y = random.randint(0, np.maximum(0, new_h - opt.crop_size))
-    
+    #print(x,y)
     flip = random.random() > 0.5
 
     return {'crop_pos': (x, y), 'flip': flip}
@@ -127,7 +127,8 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
         
     if 'crop' in opt.preprocess:
         if params is None:
-            transform_list.append(transforms.RandomCrop(opt.crop_size))
+            transform_list.append(transforms.Lambda(lambda img: __crop2(img, opt.crop_size)))
+            #transform_list.append(transforms.RandomCrop(opt.crop_size))
         else:
             transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
 
@@ -186,11 +187,22 @@ def __scale_min(img, target_min, method=Image.BICUBIC):
 def __crop(img, pos, size):
     ow, oh = img.size
     x1, y1 = pos
-    tw = th = size
+    tw = size[0]
+    th = int(tw/16)*5*2
     if (ow > tw or oh > th):
         return img.crop((x1, y1, x1 + tw, y1 + th))
     return img
+    
+def __crop2(img, size):
+    ow, oh = img.size
+    tw = size
+    th = int(tw/16)*5*2
+    x1 = random.randint(0, np.maximum(0, ow - tw))
+    y1 = random.randint(0, np.maximum(0, oh - th))
 
+    if (ow > tw or oh > th):
+        return img.crop((x1, y1, x1 + tw, y1 + th))
+    return img
 
 def __flip(img, flip):
     if flip:

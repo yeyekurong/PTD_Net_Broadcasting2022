@@ -99,6 +99,7 @@ class Unaligned_Enhance_Dataset(BaseDataset):
         btoA = self.opt.direction == 'BtoA'
         input_nc = self.opt.output_nc if btoA else self.opt.input_nc       # get the number of channels of input image
         output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
+        
         self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
         self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
 
@@ -123,13 +124,14 @@ class Unaligned_Enhance_Dataset(BaseDataset):
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
         size = B_img.size
-        #print('input image: ',B_path)
+        #print('input image: ',B_path, size)
         #if(max(size[1],size[0])>1800):
         #    B_img = B_img.resize((960, 540), Image.BICUBIC)
         # apply image transformation
         A = self.transform_A(A_img)
         B = self.transform_B(B_img)
-
+        if not self.isTrain:
+            B = torch.pow(B, 1.0)
         return {'A': A, 'B': B, 'Orisize':A_img.size, 'A_paths': A_path, 'A_boxes':torch.Tensor([0]), 'A_num_box':0, 'B_boxes':torch.Tensor([0]), 'B_num_box':0, 'im_info':[0, 0]}
 
     def __len__(self):

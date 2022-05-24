@@ -34,15 +34,6 @@ class GradLayer(nn.Module):
         return x_gray.unsqueeze(1)
 
     def forward(self, x):
-        # x_list = []
-        # for i in range(x.shape[1]):
-        #     x_i = x[:, i]
-        #     x_i_v = F.conv2d(x_i.unsqueeze(1), self.weight_v, padding=1)
-        #     x_i_h = F.conv2d(x_i.unsqueeze(1), self.weight_h, padding=1)
-        #     x_i = torch.sqrt(torch.pow(x_i_v, 2) + torch.pow(x_i_h, 2) + 1e-6)
-        #     x_list.append(x_i)
-
-        # x = torch.cat(x_list, dim=1)
         if x.shape[1] == 3:
             x = self.get_gray(x)
 
@@ -62,7 +53,40 @@ class GradLoss(nn.Module):
         output_grad = self.grad_layer(x)
         
         return 1 - torch.mean(output_grad).detach()
+
+class MSCNLoss(nn.Module):
+
+    def __init__(self):
+        super(MSCNLoss, self).__init__()
+        kernel = [[0.0030,0.0133,0.0219,0.0133,0.0030],
+                  [0.0133,0.0596,0.0983,0.0596,0.0133],
+                  [0.0219,0.0983,0.1621,0.0983,0.0219],
+                  [0.0133,0.0596,0.0983,0.0596,0.0133],
+                  [0.0030,0.0133,0.0219,0.0133,0.0030]]
         
+        kernel = torch.FloatTensor(kernel).unsqueeze(0).unsqueeze(0).cuda()
+        kernel = kernel.expand((1, 1, 5, 5))
+        self.weight = nn.Parameter(data=kernel, requires_grad=False)
+
+    def get_gray(self,x):
+        ''' 
+        Convert image to its gray one.
+        '''
+        gray_coeffs = [65.738, 129.057, 25.064]
+        convert = x.new_tensor(gray_coeffs).view(1, 3, 1, 1) / 256
+        x_gray = x.mul(convert).sum(dim=1)
+        return x_gray.unsqueeze(1)
+
+    def forward(self, x):
+        if x.shape[1] == 3:
+            x = self.get_gray(x)
+
+        rec = F.conv2d(x, self.weight, padding=2)
+        stand_variance = torch.sqrt(F.conv2d((x-rec)**2, self.weight, padding=2))
+        res = (x-rec)/(stand_variance+0.001)
+        return -torch.var(res)
+
+    
 def L1_TVLoss(x):
     selfe = 0.000001 ** 2
     batch_size = x.size()[0]
@@ -107,7 +131,10 @@ def ColorLoss(img):
         color_list = [r_mean[i],g_mean[i],b_mean[i]] 
         max_index = color_list.index(max(color_list))
         min_index = color_list.index(min(color_list))
-        mean_index = 3 - max_index - min_index
+        if max_index == min_index:
+            mean_index = min_index
+        else:
+            mean_index = 3 - max_index - min_index
         loss_color += color_list[max_index] - color_list[mean_index]
     return loss_color/img.size(0)
 

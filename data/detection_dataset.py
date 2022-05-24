@@ -57,7 +57,7 @@ class Detection_Enhance_Dataset(BaseDataset):
         self.B_index_begin = -2
         self.B_imgs = []
 
-    def __getitem__(self, index, Astyle=True, Bstyle=False, Flip=True):
+    def __getitem__(self, index, Astyle=True, Bstyle=True, Flip=False):
         """Return a data point and its metadata information.
 
         Parameters:
@@ -84,18 +84,19 @@ class Detection_Enhance_Dataset(BaseDataset):
             B_img = Image.open(B_path).convert('RGB')
             A_name = os.path.split(A_path)[1]
             B_name = os.path.split(B_path)[1]
-            classes = ['person','car','bicycle','bus','motorbike']
-            #classes = ['person','car']
+            #classes = ['person','car','bicycle','bus','motorbike']
+            classes = ['person','car']
             #print(B_path)
             #print(index_A)
             #[w, h] = B_img.size
             A_tensor = self.transform_C(A_img)
-            no_flip = random.random() > 0.5
-            no_flip = True
+            #no_flip = random.random() > 0.5
+            no_flip = not Flip
             if no_flip:
                 B_tensor = self.transform_C(B_img)
             else:
                 B_tensor = self.transform_D(B_img)
+            
             if index_B-self.B_index_pre==1 and index_B in self.B_imgs:
                 self.A_imgs = list(range(self.A_index_begin, self.A_index_begin+self.batch_size))
                 self.B_imgs = list(range(self.B_index_begin, self.B_index_begin+self.batch_size))
@@ -133,24 +134,28 @@ class Detection_Enhance_Dataset(BaseDataset):
                 if os.path.exists(xml_file):
                     tree = ET.parse(xml_file)
                     objs = tree.findall('object')
+                    sizes = tree.findall('size')
                     B_boxes = torch.zeros(40, 5)
                     B_actual_obj = 0
                     for ix, obj in enumerate(objs):
+                        w_xml = float(sizes[0].find('width').text.lower().strip())
+                        h_xml = float(sizes[0].find('height').text.lower().strip())
+                        #print(B_img.size[0] / w_xml)
                         cls = obj.find('name').text.lower().strip()
                         dif = int(obj.find('difficult').text.lower().strip())
                         if cls in classes and dif==0 and B_actual_obj < 40:
                             bbox = obj.find('bndbox')
                             # Make pixel indexes 0-based
                             if no_flip:
-                                x1 = float(bbox.find('xmin').text) * B_scale - 1
-                                y1 = float(bbox.find('ymin').text) * B_scale - 1
-                                x2 = float(bbox.find('xmax').text) * B_scale - 1
-                                y2 = float(bbox.find('ymax').text) * B_scale - 1
+                                x1 = float(bbox.find('xmin').text) * B_scale * (B_img.size[0] / w_xml)  - 1
+                                y1 = float(bbox.find('ymin').text) * B_scale * (B_img.size[1] / h_xml) - 1
+                                x2 = float(bbox.find('xmax').text) * B_scale * (B_img.size[0] / w_xml) - 1
+                                y2 = float(bbox.find('ymax').text) * B_scale * (B_img.size[1] / h_xml) - 1
                             else:
-                                x1 = (B_img.size[0]-float(bbox.find('xmax').text)) * B_scale - 1
-                                y1 = float(bbox.find('ymin').text) * B_scale - 1
-                                x2 = (B_img.size[0]-float(bbox.find('xmin').text)) * B_scale - 1
-                                y2 = float(bbox.find('ymax').text) * B_scale - 1           
+                                x1 = (B_img.size[0]-float(bbox.find('xmax').text)) * B_scale * (B_img.size[0] / w_xml) - 1
+                                y1 = float(bbox.find('ymin').text) * B_scale * (B_img.size[1] / h_xml) - 1
+                                x2 = (B_img.size[0]-float(bbox.find('xmin').text)) * B_scale * (B_img.size[0] / w_xml) - 1
+                                y2 = float(bbox.find('ymax').text) * B_scale * (B_img.size[1] / h_xml) - 1           
                             B_boxes[B_actual_obj, :] = torch.Tensor([x1, y1, x2, y2, self._classes.index(cls)])
                             #print(B_path, no_flip, B_img.size, float(bbox.find('xmin').text), B_scale, [x1, y1, x2, y2])               
                             B_actual_obj += 1
