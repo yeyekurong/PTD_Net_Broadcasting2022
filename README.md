@@ -12,4 +12,4 @@ python3.6
 
 ####
 Inference:
-python test.py --name SGP_unsuper --gpu_ids 0 --load_iter 240
+python test.py --name SGP_unsuper --gpu_ids 0 --load_iter 230
