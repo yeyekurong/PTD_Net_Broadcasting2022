@@ -1,6 +1,6 @@
 ####
 Paper:  
-"Qiang Guo, Mingliang Zhou. Progressive Domain Translation Defogging Network for Real-world Fog Images [J]. IEEE transactions on broadcasting". Using the defogging network in this paper instead of the traditional method in yeyekurong/Compatable_defogging for defogging will make the enhance effect more stable and low-noise.  
+"Qiang Guo, Mingliang Zhou. Progressive Domain Translation Defogging Network for Real-world Fog Images [J]. IEEE transactions on broadcasting". Using the defogging network in this paper instead of the traditional method in yeyekurong/Compatible-Defogging for defogging will make the enhance effect more stable and low-noise.  
 
 ####
 Requirment environment:  
